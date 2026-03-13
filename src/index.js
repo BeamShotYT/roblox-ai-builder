@@ -9,7 +9,7 @@ export default {
     const prompt = body.prompt;
 
     const geminiResponse = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=YOUR_API_KEY",
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyCcMUQxBrjnD3iYATIcA3iNhM5pUq0l4MM",
       {
         method: "POST",
         headers: {
