@@ -28,7 +28,6 @@ method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({prompt})
 });
-if(!res.ok){throw new Error("Worker returned HTTP "+res.status);}
 const data=await res.json();
 let parts=[];
 try{
