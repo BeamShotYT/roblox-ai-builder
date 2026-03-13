@@ -17,11 +17,15 @@ export default {
     let body;
     try {
       body = await request.json();
-    } catch {
-      return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400, headers: corsHeaders });
+    } catch (e) {
+      return new Response(JSON.stringify({ error: "Invalid JSON", detail: e.message }), { status: 400, headers: corsHeaders });
     }
 
     const prompt = body.prompt || "default prompt";
+
+    if (!env.GEMINI_KEY) {
+      return new Response(JSON.stringify({ error: "GEMINI_KEY secret is not set in Cloudflare" }), { status: 500, headers: corsHeaders });
+    }
 
     let geminiData;
     try {
@@ -39,9 +43,17 @@ export default {
           })
         }
       );
-      geminiData = await geminiResponse.json();
-    } catch {
-      return new Response(JSON.stringify({ error: "Gemini request failed" }), { status: 500, headers: corsHeaders });
+
+      const geminiRaw = await geminiResponse.text();
+
+      try {
+        geminiData = JSON.parse(geminiRaw);
+      } catch {
+        return new Response(JSON.stringify({ error: "Gemini returned non-JSON", detail: geminiRaw }), { status: 500, headers: corsHeaders });
+      }
+
+    } catch (e) {
+      return new Response(JSON.stringify({ error: "Gemini request failed", detail: e.message }), { status: 500, headers: corsHeaders });
     }
 
     return new Response(JSON.stringify(geminiData), { status: 200, headers: corsHeaders });
