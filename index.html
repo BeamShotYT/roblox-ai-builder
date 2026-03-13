@@ -28,13 +28,36 @@ async function generate() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt })
     });
-    const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+
+    output.textContent = "HTTP status: " + res.status + "\nReading body...";
+
+    const raw = await res.text();
+    output.textContent = "Raw response:\n" + raw;
+
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      output.textContent = "Worker returned non-JSON:\n" + raw;
+      return;
+    }
+
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+    if (!text) {
+      output.textContent = "No Gemini text found. Full response:\n" + JSON.stringify(data, null, 2);
+      return;
+    }
+
     let parts = [];
-    try { parts = JSON.parse(text); } catch {}
+    try { parts = JSON.parse(text); } catch {
+      output.textContent = "Gemini text wasn't valid JSON:\n" + text;
+      return;
+    }
+
     output.textContent = JSON.stringify(parts, null, 2);
+
   } catch (err) {
-    output.textContent = "Error: " + err;
+    output.textContent = "Fetch failed entirely: " + err;
   }
 }
 </script>
