@@ -24,7 +24,15 @@ export default {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [
-            { parts: [{ text: `Generate Roblox JSON for: ${prompt}` }] }
+            {
+              parts: [
+                {
+                  text: `Generate Roblox building JSON ONLY for: ${prompt}. 
+                  Output should be a JSON array where each item has: 
+                  {Name, Size: [x,y,z], Position: [x,y,z], Color: [r,g,b], Material}`
+                }
+              ]
+            }
           ]
         })
       }
