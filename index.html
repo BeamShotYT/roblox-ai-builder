@@ -23,7 +23,7 @@ async function generate() {
   if (!prompt) { output.textContent = "Please enter a prompt!"; return; }
   output.textContent = "Generating...";
   try {
-    const res = await fetch("https://roblox-ai-builder.m-farshad.workers.dev/", {
+    const res = await fetch("https://roblox-ai-worker.m-farshad.workers.dev/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt })
