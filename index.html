@@ -17,24 +17,25 @@ pre{margin-top:30px;background:#1a1a1a;padding:20px;border-radius:8px;max-width:
 <button onclick="generate()">Generate</button>
 <pre id="output">AI output will appear here...</pre>
 <script>
-async function generate(){
-const prompt=document.getElementById("prompt").value;
-const output=document.getElementById("output");
-if(!prompt){output.textContent="Please enter a prompt!";return;}
-output.textContent="Generating...";
-try{
-const res=await fetch("https://roblox-ai-builder.m-farshad.workers.dev/",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({prompt})
-});
-const data=await res.json();
-let parts=[];
-try{
-parts=JSON.parse(data?.candidates?.[0]?.content?.[0]?.text||"[]");
-}catch{}
-output.textContent=JSON.stringify(parts,null,2);
-}catch(err){output.textContent="Error: "+err;}
+async function generate() {
+  const prompt = document.getElementById("prompt").value;
+  const output = document.getElementById("output");
+  if (!prompt) { output.textContent = "Please enter a prompt!"; return; }
+  output.textContent = "Generating...";
+  try {
+    const res = await fetch("https://roblox-ai-builder.m-farshad.workers.dev/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt })
+    });
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+    let parts = [];
+    try { parts = JSON.parse(text); } catch {}
+    output.textContent = JSON.stringify(parts, null, 2);
+  } catch (err) {
+    output.textContent = "Error: " + err;
+  }
 }
 </script>
 </body>
