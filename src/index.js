@@ -1,5 +1,6 @@
 export default {
   async fetch(request) {
+
     if (request.method === "OPTIONS") {
       return new Response(null, {
         headers: {
