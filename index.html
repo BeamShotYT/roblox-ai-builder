@@ -1,89 +1,38 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <title>Roblox AI Builder</title>
-
 <style>
-body{
-font-family: Arial;
-background:#0f0f0f;
-color:white;
-text-align:center;
-padding:40px;
-}
-
-input{
-width:320px;
-padding:10px;
-font-size:16px;
-}
-
-button{
-padding:10px 20px;
-margin-left:10px;
-font-size:16px;
-cursor:pointer;
-}
-
-pre{
-margin-top:30px;
-background:#1a1a1a;
-padding:20px;
-border-radius:8px;
-max-width:700px;
-margin-left:auto;
-margin-right:auto;
-text-align:left;
-overflow:auto;
-}
+body{font-family:Arial,sans-serif;background:#0f0f0f;color:white;text-align:center;padding:40px}
+input{width:320px;padding:10px;font-size:16px}
+button{padding:10px 20px;margin-left:10px;font-size:16px;cursor:pointer}
+pre{margin-top:30px;background:#1a1a1a;padding:20px;border-radius:8px;max-width:700px;margin-left:auto;margin-right:auto;text-align:left;overflow:auto}
 </style>
-
 </head>
-
 <body>
-
 <h1>Roblox AI Builder</h1>
-
 <p>Describe what you want to build</p>
-
 <input id="prompt" placeholder="Example: small futuristic house">
-
 <button onclick="generate()">Generate</button>
-
 <pre id="output">AI output will appear here...</pre>
-
 <script>
 async function generate(){
-
-const prompt = document.getElementById("prompt").value
-
-document.getElementById("output").textContent = "Generating..."
-
+const prompt=document.getElementById("prompt").value;
+const output=document.getElementById("output");
+if(!prompt){output.textContent="Please enter a prompt!";return;}
+output.textContent="Generating...";
 try{
-
-const res = await fetch("https://roblox-ai-builder.m-farshad.workers.dev/",{
+const res=await fetch("https://roblox-ai-builder.m-farshad.workers.dev/",{
 method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
+headers:{"Content-Type":"application/json"},
 body:JSON.stringify({prompt})
-})
-
-const data = await res.json()
-
-document.getElementById("output").textContent =
-JSON.stringify(data,null,2)
-
-}catch(err){
-
-document.getElementById("output").textContent =
-"Error: "+err
-
-}
-
+});
+if(!res.ok){throw new Error("Worker returned HTTP "+res.status);}
+const data=await res.json();
+output.textContent=JSON.stringify(data,null,2);
+}catch(err){output.textContent="Error: "+err;}
 }
 </script>
-
 </body>
 </html>
