@@ -42,7 +42,7 @@ async function generate() {
       return;
     }
 
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+   const text = data?.choices?.[0]?.message?.content || null;
     if (!text) {
       output.textContent = "No Gemini text found. Full response:\n" + JSON.stringify(data, null, 2);
       return;
