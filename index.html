@@ -30,7 +30,11 @@ body:JSON.stringify({prompt})
 });
 if(!res.ok){throw new Error("Worker returned HTTP "+res.status);}
 const data=await res.json();
-output.textContent=JSON.stringify(data,null,2);
+let parts;
+try{
+parts=JSON.parse(data?.candidates[0]?.content[0]?.text||"[]");
+}catch{parts=[];}
+output.textContent=JSON.stringify(parts,null,2);
 }catch(err){output.textContent="Error: "+err;}
 }
 </script>
