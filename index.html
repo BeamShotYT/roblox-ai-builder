@@ -28,12 +28,7 @@ async function generate() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt })
     });
-
-    output.textContent = "HTTP status: " + res.status + "\nReading body...";
-
     const raw = await res.text();
-    output.textContent = "Raw response:\n" + raw;
-
     let data;
     try {
       data = JSON.parse(raw);
@@ -41,21 +36,20 @@ async function generate() {
       output.textContent = "Worker returned non-JSON:\n" + raw;
       return;
     }
-
-   const text = data?.choices?.[0]?.message?.content || null;
+    const text = data?.choices?.[0]?.message?.content || null;
     if (!text) {
-      output.textContent = "No Gemini text found. Full response:\n" + JSON.stringify(data, null, 2);
+      output.textContent = "No response found. Full response:\n" + JSON.stringify(data, null, 2);
       return;
     }
-
+    const cleaned = text.replace(/```json|```/g, "").trim();
     let parts = [];
-    try { parts = JSON.parse(text); } catch {
-      output.textContent = "Gemini text wasn't valid JSON:\n" + text;
+    try {
+      parts = JSON.parse(cleaned);
+    } catch {
+      output.textContent = "AI text wasn't valid JSON:\n" + cleaned;
       return;
     }
-
     output.textContent = JSON.stringify(parts, null, 2);
-
   } catch (err) {
     output.textContent = "Fetch failed entirely: " + err;
   }
