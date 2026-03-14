@@ -5,54 +5,105 @@
 <title>Roblox AI Builder</title>
 <style>
 body{font-family:Arial,sans-serif;background:#0f0f0f;color:white;text-align:center;padding:40px}
-input{width:320px;padding:10px;font-size:16px}
-button{padding:10px 20px;margin-left:10px;font-size:16px;cursor:pointer}
+input,textarea{width:320px;padding:10px;font-size:16px;background:#1a1a1a;color:white;border:1px solid #333;border-radius:6px}
+button{padding:10px 20px;margin:6px;font-size:16px;cursor:pointer;border:none;border-radius:6px}
+#generateBtn{background:#0099ff;color:white}
+#refineBtn{background:#444;color:white}
+#clearBtn{background:#663333;color:white;font-size:13px;padding:6px 14px}
 pre{margin-top:30px;background:#1a1a1a;padding:20px;border-radius:8px;max-width:700px;margin-left:auto;margin-right:auto;text-align:left;overflow:auto}
+#historyBox{margin-top:20px;max-width:700px;margin-left:auto;margin-right:auto;text-align:left}
+.msg{padding:8px 12px;margin:4px 0;border-radius:6px;font-size:13px}
+.user{background:#1a3a5c}
+.assistant{background:#1a2a1a;color:#aaffaa}
+#refineArea{margin-top:16px}
 </style>
 </head>
 <body>
 <h1>Roblox AI Builder</h1>
 <p>Describe what you want to build</p>
 <input id="prompt" placeholder="Example: small futuristic house">
-<button onclick="generate()">Generate</button>
+<br><br>
+<button id="generateBtn" onclick="generate()">Generate</button>
+<button id="clearBtn" onclick="clearHistory()">Clear History</button>
+
+<div id="refineArea" style="display:none">
+  <p style="color:#aaa;font-size:13px">Want to refine it? Describe what to change:</p>
+  <textarea id="refinePrompt" rows="2" placeholder="e.g. make the trunk taller, add more leaves"></textarea>
+  <br>
+  <button id="refineBtn" onclick="refine()">Refine Build</button>
+</div>
+
 <pre id="output">AI output will appear here...</pre>
+
+<div id="historyBox"></div>
+
 <script>
-async function generate() {
-  const prompt = document.getElementById("prompt").value;
+let history = [];
+
+function updateHistoryDisplay() {
+  const box = document.getElementById("historyBox");
+  if (history.length === 0) { box.innerHTML = ""; return; }
+  box.innerHTML = "<p style='color:#666;font-size:12px'>Conversation history (" + (history.length/2) + " exchanges):</p>" +
+    history.map(m => `<div class='msg ${m.role}'>${m.role === "user" ? "You: " : "AI: "}${m.content.substring(0, 80)}...</div>`).join("");
+}
+
+async function sendPrompt(userMessage) {
   const output = document.getElementById("output");
-  if (!prompt) { output.textContent = "Please enter a prompt!"; return; }
   output.textContent = "Generating...";
+
   try {
     const res = await fetch("https://roblox-ai-worker.m-farshad.workers.dev/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt })
+      body: JSON.stringify({ prompt: userMessage, history })
     });
+
     const raw = await res.text();
     let data;
-    try {
-      data = JSON.parse(raw);
-    } catch {
+    try { data = JSON.parse(raw); } catch {
       output.textContent = "Worker returned non-JSON:\n" + raw;
       return;
     }
-    const text = data?.choices?.[0]?.message?.content || null;
-    if (!text) {
-      output.textContent = "No response found. Full response:\n" + JSON.stringify(data, null, 2);
+
+    if (data.error) {
+      output.textContent = "Error: " + data.error + "\n" + (data.detail || "");
       return;
     }
-    const cleaned = text.replace(/```json|```/g, "").trim();
-    let parts = [];
-    try {
-      parts = JSON.parse(cleaned);
-    } catch {
-      output.textContent = "AI text wasn't valid JSON:\n" + cleaned;
-      return;
-    }
-    output.textContent = JSON.stringify(parts, null, 2);
+
+    // Add to history
+    history.push({ role: "user", content: userMessage });
+    if (data.assistantMessage) history.push(data.assistantMessage);
+
+    // Keep history to last 6 exchanges to avoid token limits
+    if (history.length > 12) history = history.slice(history.length - 12);
+
+    updateHistoryDisplay();
+    document.getElementById("refineArea").style.display = "block";
+    output.textContent = JSON.stringify(data.parts, null, 2);
+
   } catch (err) {
-    output.textContent = "Fetch failed entirely: " + err;
+    output.textContent = "Fetch failed: " + err;
   }
+}
+
+function generate() {
+  const prompt = document.getElementById("prompt").value;
+  if (!prompt) { document.getElementById("output").textContent = "Please enter a prompt!"; return; }
+  sendPrompt(prompt);
+}
+
+function refine() {
+  const refineText = document.getElementById("refinePrompt").value;
+  if (!refineText) return;
+  document.getElementById("refinePrompt").value = "";
+  sendPrompt(refineText);
+}
+
+function clearHistory() {
+  history = [];
+  updateHistoryDisplay();
+  document.getElementById("refineArea").style.display = "none";
+  document.getElementById("output").textContent = "AI output will appear here...";
 }
 </script>
 </body>
