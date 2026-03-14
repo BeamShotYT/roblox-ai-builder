@@ -4,52 +4,159 @@
 <meta charset="UTF-8">
 <title>Roblox AI Builder</title>
 <style>
-body{font-family:Arial,sans-serif;background:#0f0f0f;color:white;text-align:center;padding:40px}
-input,textarea{width:320px;padding:10px;font-size:16px;background:#1a1a1a;color:white;border:1px solid #333;border-radius:6px}
-button{padding:10px 20px;margin:6px;font-size:16px;cursor:pointer;border:none;border-radius:6px}
-#generateBtn{background:#0099ff;color:white}
-#refineBtn{background:#444;color:white}
-#clearBtn{background:#663333;color:white;font-size:13px;padding:6px 14px}
-pre{margin-top:30px;background:#1a1a1a;padding:20px;border-radius:8px;max-width:700px;margin-left:auto;margin-right:auto;text-align:left;overflow:auto}
-#historyBox{margin-top:20px;max-width:700px;margin-left:auto;margin-right:auto;text-align:left}
-.msg{padding:8px 12px;margin:4px 0;border-radius:6px;font-size:13px}
-.user{background:#1a3a5c}
-.assistant{background:#1a2a1a;color:#aaffaa}
-#refineArea{margin-top:16px}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #0a0a0f;
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+  h1 {
+    font-size: 32px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #00aaff, #00ffaa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+  .card {
+    background: #13131a;
+    border: 1px solid #222;
+    border-radius: 16px;
+    padding: 24px;
+    width: 100%;
+    max-width: 680px;
+    margin-bottom: 16px;
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 8px;
+  }
+  .input-row {
+    display: flex;
+    gap: 10px;
+  }
+  input[type=text], textarea {
+    flex: 1;
+    background: #1e1e2e;
+    border: 1px solid #333;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 15px;
+    padding: 12px 16px;
+    outline: none;
+    transition: border 0.2s;
+  }
+  input[type=text]:focus, textarea:focus {
+    border-color: #0099ff;
+  }
+  textarea {
+    resize: none;
+    width: 100%;
+    margin-top: 12px;
+  }
+  .btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: #0099ff; color: white; }
+  .btn-refine { background: #1e3a5c; color: #7ec8ff; width: 100%; margin-top: 10px; }
+  .btn-save { background: #1a3a1a; color: #7eff7e; width: 100%; margin-top: 8px; }
+  .btn-clear { background: transparent; color: #555; border: 1px solid #333; font-size: 12px; padding: 6px 14px; border-radius: 8px; cursor: pointer; margin-top: 8px; }
+  .status {
+    font-size: 13px;
+    color: #666;
+    margin-top: 12px;
+    min-height: 20px;
+  }
+  .status.error { color: #ff6666; }
+  .status.success { color: #66ff99; }
+  pre {
+    background: #0d0d15;
+    border: 1px solid #1e1e2e;
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 12px;
+    overflow: auto;
+    max-height: 400px;
+    color: #aaffaa;
+    margin-top: 12px;
+  }
+  .tag {
+    display: inline-block;
+    background: #1a2a3a;
+    color: #7ec8ff;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+  #saveSection { display: none; }
+  #refineSection { display: none; }
 </style>
 </head>
 <body>
-<h1>Roblox AI Builder</h1>
-<p>Describe what you want to build</p>
-<input id="prompt" placeholder="Example: small futuristic house">
-<br><br>
-<button id="generateBtn" onclick="generate()">Generate</button>
-<button id="clearBtn" onclick="clearHistory()">Clear History</button>
 
-<div id="refineArea" style="display:none">
-  <p style="color:#aaa;font-size:13px">Want to refine it? Describe what to change:</p>
-  <textarea id="refinePrompt" rows="2" placeholder="e.g. make the trunk taller, add more leaves"></textarea>
-  <br>
-  <button id="refineBtn" onclick="refine()">Refine Build</button>
+<h1>Roblox AI Builder</h1>
+<p class="subtitle">Describe anything — AI generates it instantly in Roblox Studio</p>
+
+<div class="card">
+  <label>What do you want to build?</label>
+  <div class="input-row">
+    <input type="text" id="prompt" placeholder="e.g. medieval castle tower, oak tree, futuristic house">
+    <button class="btn btn-primary" onclick="generate()">Generate</button>
+  </div>
+  <div class="status" id="status">Ready</div>
 </div>
 
-<pre id="output">AI output will appear here...</pre>
+<div class="card" id="outputCard" style="display:none">
+  <span class="tag" id="partCount">0 parts</span>
+  <pre id="output"></pre>
 
-<div id="historyBox"></div>
+  <div id="refineSection">
+    <textarea id="refinePrompt" rows="2" placeholder="Describe what to change... e.g. make the trunk taller, add more leaves, change color to red"></textarea>
+    <button class="btn btn-refine" onclick="refine()">Refine Build</button>
+  </div>
+
+  <div id="saveSection">
+    <button class="btn btn-save" onclick="saveBuild()">👍 Save as Good Example (helps AI learn)</button>
+  </div>
+
+  <button class="btn-clear" onclick="clearAll()">Clear & Start Over</button>
+</div>
 
 <script>
 let history = [];
+let lastParts = null;
+let lastPrompt = "";
 
-function updateHistoryDisplay() {
-  const box = document.getElementById("historyBox");
-  if (history.length === 0) { box.innerHTML = ""; return; }
-  box.innerHTML = "<p style='color:#666;font-size:12px'>Conversation history (" + (history.length/2) + " exchanges):</p>" +
-    history.map(m => `<div class='msg ${m.role}'>${m.role === "user" ? "You: " : "AI: "}${m.content.substring(0, 80)}...</div>`).join("");
+function setStatus(msg, type) {
+  const el = document.getElementById("status");
+  el.textContent = msg;
+  el.className = "status" + (type ? " " + type : "");
 }
 
 async function sendPrompt(userMessage) {
-  const output = document.getElementById("output");
-  output.textContent = "Generating...";
+  setStatus("Generating...");
+  document.getElementById("outputCard").style.display = "none";
 
   try {
     const res = await fetch("https://roblox-ai-worker.m-farshad.workers.dev/", {
@@ -61,49 +168,73 @@ async function sendPrompt(userMessage) {
     const raw = await res.text();
     let data;
     try { data = JSON.parse(raw); } catch {
-      output.textContent = "Worker returned non-JSON:\n" + raw;
+      setStatus("Worker returned invalid response", "error");
       return;
     }
 
     if (data.error) {
-      output.textContent = "Error: " + data.error + "\n" + (data.detail || "");
+      setStatus("Error: " + data.error, "error");
       return;
     }
 
-    // Add to history
     history.push({ role: "user", content: userMessage });
     if (data.assistantMessage) history.push(data.assistantMessage);
-
-    // Keep history to last 6 exchanges to avoid token limits
     if (history.length > 12) history = history.slice(history.length - 12);
 
-    updateHistoryDisplay();
-    document.getElementById("refineArea").style.display = "block";
-    output.textContent = JSON.stringify(data.parts, null, 2);
+    lastParts = data.parts;
+    lastPrompt = userMessage;
+
+    document.getElementById("output").textContent = JSON.stringify(data.parts, null, 2);
+    document.getElementById("partCount").textContent = data.parts.length + " parts";
+    document.getElementById("outputCard").style.display = "block";
+    document.getElementById("refineSection").style.display = "block";
+    document.getElementById("saveSection").style.display = "block";
+    setStatus("Done! Copy the JSON or refine below.", "success");
 
   } catch (err) {
-    output.textContent = "Fetch failed: " + err;
+    setStatus("Request failed: " + err, "error");
   }
 }
 
 function generate() {
-  const prompt = document.getElementById("prompt").value;
-  if (!prompt) { document.getElementById("output").textContent = "Please enter a prompt!"; return; }
+  const prompt = document.getElementById("prompt").value.trim();
+  if (!prompt) { setStatus("Please enter a prompt!", "error"); return; }
+  history = [];
   sendPrompt(prompt);
 }
 
 function refine() {
-  const refineText = document.getElementById("refinePrompt").value;
+  const refineText = document.getElementById("refinePrompt").value.trim();
   if (!refineText) return;
   document.getElementById("refinePrompt").value = "";
   sendPrompt(refineText);
 }
 
-function clearHistory() {
+async function saveBuild() {
+  if (!lastParts || !lastPrompt) return;
+  try {
+    const res = await fetch("https://roblox-ai-worker.m-farshad.workers.dev/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: lastPrompt, parts: lastParts })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      document.getElementById("saveSection").innerHTML = "<p style='color:#66ff99;font-size:13px;margin-top:8px'>✓ Saved! This will help future builds.</p>";
+    }
+  } catch (e) {
+    console.error("Save failed", e);
+  }
+}
+
+function clearAll() {
   history = [];
-  updateHistoryDisplay();
-  document.getElementById("refineArea").style.display = "none";
-  document.getElementById("output").textContent = "AI output will appear here...";
+  lastParts = null;
+  lastPrompt = "";
+  document.getElementById("prompt").value = "";
+  document.getElementById("output").textContent = "";
+  document.getElementById("outputCard").style.display = "none";
+  setStatus("Ready");
 }
 </script>
 </body>
